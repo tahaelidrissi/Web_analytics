@@ -4,13 +4,14 @@ import requests
 from bs4 import BeautifulSoup
 import io
 import PyPDF2
+from db import collection
+from datetime import datetime
 
 router = APIRouter()
 
 @router.post("/scrape")
 def scrape(request: ScrapeRequest):
     try:
-        # Télécharger le contenu de l'URL
         response = requests.get(request.url, timeout=15)
         if response.status_code != 200:
             raise HTTPException(status_code=400, detail="Invalid URL")
@@ -35,22 +36,30 @@ def scrape(request: ScrapeRequest):
             reader = PyPDF2.PdfReader(pdf_file)
             text = ""
             for page in reader.pages:
-                text += page.extract_text() + "\n"
+                page_text = page.extract_text()
+                if page_text:
+                    text += page_text + "\n"
             lines = text.splitlines()[:request.limit]
             data = [{"index": i+1, "value": line} for i, line in enumerate(lines)]
 
-        # Autres types non supportés
         else:
             raise HTTPException(status_code=415, detail=f"Unsupported content type: {content_type}")
 
-        return {
+        # Stockage dans MongoDB
+        document = {
             "url": request.url,
             "selector": request.selector,
             "limit": request.limit,
             "count": len(data),
             "data": data,
-            "content_type": content_type
+            "content_type": content_type,
+            "scraped_at": datetime.utcnow()
         }
+        inserted_doc = collection.insert_one(document)
+        document["_id"] = str(inserted_doc.inserted_id)  # Conversion ObjectId -> string
+
+        return document
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        # Affiche l'erreur complète pour debug
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
