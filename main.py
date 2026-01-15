@@ -5,6 +5,7 @@ from routes.sources import router as sources_router
 from routes.config import router as config_router
 from routes.search import router as search_router
 from routes.scheduler_routes import router as scheduler_router
+from routes.rss import router as rss_router
 from scheduler import start_scheduler, stop_scheduler
 import logging
 
@@ -37,6 +38,7 @@ app.include_router(sources_router)
 app.include_router(config_router)
 app.include_router(search_router)
 app.include_router(scheduler_router)
+app.include_router(rss_router)
 
 @app.get("/health")
 async def health_check():
