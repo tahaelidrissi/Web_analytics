@@ -9,9 +9,10 @@ Une application **FastAPI** complète pour la collecte, le traitement et l'analy
 - [Architecture](#architecture)
 - [Installation](#installation)
 - [Configuration](#configuration)
+- [Docker](#docker)
 - [Utilisation](#utilisation)
 - [API Endpoints](#api-endpoints)
-- [Docker](#docker)
+- [Tests](#tests)
 
 ---
 
@@ -213,10 +214,129 @@ cp .env.example .env
 ```
 
 5. **Lancer l'application**
+
+**Option A: Sans Docker (développement)**
 ```bash
-python main.py
-# L'API sera accessible sur http://localhost:8000
+# Backend
+uvicorn main:app --reload --port 8000
+
+# Frontend (nouveau terminal)
+cd frontend
+npm install
+npm run dev
 ```
+
+**Option B: Avec Docker (production)**
+```bash
+# Lancer tous les services (backend + frontend + MongoDB)
+docker-compose up -d
+
+# Vérifier les logs
+docker-compose logs -f
+
+# Arrêter les services
+docker-compose down
+```
+
+L'API sera accessible sur http://localhost:8000 et le frontend sur http://localhost (ou http://localhost:5173 en dev).
+
+---
+
+## 🐳 Docker
+
+### Démarrage Rapide
+
+**Lancer toute l'application avec une seule commande:**
+```bash
+docker-compose up -d
+```
+
+Cela lance:
+- **MongoDB** sur le port 27017
+- **Backend API** sur le port 8000
+- **Frontend** sur le port 80
+
+### Services Disponibles
+
+| Service | URL | Description |
+|---------|-----|-------------|
+| Frontend | http://localhost | Interface React |
+| Backend API | http://localhost:8000 | API FastAPI |
+| API Docs | http://localhost:8000/docs | Swagger UI |
+| MongoDB | localhost:27017 | Base de données |
+
+### Commandes Docker Utiles
+
+```bash
+# Démarrer les services
+docker-compose up -d
+
+# Voir les logs
+docker-compose logs -f backend
+docker-compose logs -f frontend
+
+# Arrêter les services
+docker-compose down
+
+# Rebuild après modifications
+docker-compose up -d --build
+
+# Voir les services actifs
+docker-compose ps
+
+# Accéder au conteneur backend
+docker exec -it webanalproject_backend bash
+
+# Nettoyer tout (containers + volumes)
+docker-compose down -v
+```
+
+### Variables d'Environnement Docker
+
+Créer un fichier `.env` à la racine:
+```env
+# MongoDB (utilisé par docker-compose)
+MONGO_URI=mongodb://admin:admin123@mongodb:27017/
+
+# OpenAI
+OPENAI_API_KEY=sk-your-api-key-here
+
+# Frontend
+VITE_API_BASE_URL=http://localhost:8000
+```
+
+### Architecture Docker
+
+```
+┌─────────────────────────────────────┐
+│         Frontend (Nginx)            │
+│       Port: 80                      │
+│       Build: React + Vite           │
+└──────────────┬──────────────────────┘
+               │
+               ▼
+┌─────────────────────────────────────┐
+│      Backend API (FastAPI)          │
+│       Port: 8000                    │
+│       Python 3.11                   │
+└──────────────┬──────────────────────┘
+               │
+               ▼
+┌─────────────────────────────────────┐
+│       MongoDB Database              │
+│       Port: 27017                   │
+│       Version: 7.0                  │
+└─────────────────────────────────────┘
+```
+
+### Healthchecks
+
+Tous les services ont des healthchecks intégrés:
+- Backend: `GET /health`
+- MongoDB: `mongosh ping`
+- Frontend: nginx status
+
+
 
 ---
 
@@ -509,6 +629,52 @@ pytest --cov=routes --cov=scheduler --cov=db
 - [Swagger API](http://localhost:8000/docs) - Documentation interactive
 - [ReDoc](http://localhost:8000/redoc) - Documentation alternative
 - [systemdesign.md](systemdesign.md) - Architecture détaillée
+- [tests/README.md](tests/README.md) - Documentation des tests
+
+---
+
+## 🧪 Tests
+
+Tous les tests sont organisés dans le dossier `tests/`.
+
+### Lancer les tests
+
+```bash
+# Tous les tests
+pytest tests/
+
+# Tests spécifiques
+pytest tests/test_main.py
+pytest tests/test_scheduler.py
+
+# Avec couverture
+pytest tests/ --cov=. --cov-report=html
+
+# Mode verbose
+pytest tests/ -v
+```
+
+### Structure des tests
+
+- `test_main.py` - Tests de scraping HTML
+- `test_config.py` - Tests de configuration
+- `test_search.py` - Tests de recherche
+- `test_sources.py` - Tests CRUD sources
+- `test_scheduler.py` - Tests du scheduler
+- `test_rss.py` - Tests flux RSS
+- `test_social_media.py` - Tests réseaux sociaux
+- `test_integration.py` - Tests d'intégration
+
+Voir [tests/README.md](tests/README.md) pour plus de détails.
+
+---
+
+## 📚 Documentation supplémentaire
+
+- [Swagger API](http://localhost:8000/docs) - Documentation interactive
+- [ReDoc](http://localhost:8000/redoc) - Documentation alternative
+- [systemdesign.md](systemdesign.md) - Architecture détaillée
+- [tests/README.md](tests/README.md) - Documentation des tests
 
 ---
 
@@ -527,4 +693,4 @@ MIT
 
 ---
 
-**Dernière mise à jour**: Janvier 2026 | **Version**: 4.0 (Phase 4 complète)
+**Dernière mise à jour**: Janvier 2026 | **Version**: 5.0 (Analytics & IA avec LLM)
