@@ -5,6 +5,7 @@ import Sources from './components/Sources';
 import Scrape from './components/Scrape';
 import Search from './components/Search';
 import Scheduler from './components/Scheduler';
+import Analytics from './components/Analytics';
 import './index.css';
 
 function App() {
@@ -22,6 +23,8 @@ function App() {
         return <Search />;
       case 'scheduler':
         return <Scheduler />;
+            case 'analytics':
+              return <Analytics />;
       default:
         return <Dashboard />;
     }

@@ -48,4 +48,17 @@ export const searchAPI = {
   }),
 };
 
+// Analytics
+export const analyticsAPI = {
+  analyzeDocument: (documentId) =>
+    client.post('/analytics/analyze-document', { document_id: documentId }),
+  analyzeBatch: (limit = 10) =>
+    client.post('/analytics/analyze-batch', { limit }),
+  getStats: () => client.get('/analytics/stats'),
+  getByCategory: (category, limit = 50) =>
+    client.get(`/analytics/documents-by-category/${category}`, { params: { limit } }),
+  searchByKeywords: (keywords, limit = 20) =>
+    client.get('/analytics/search-by-keywords', { params: { keywords, limit } }),
+};
+
 export default client;

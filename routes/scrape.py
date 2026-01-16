@@ -49,14 +49,15 @@ def scrape_url(url: str, selector: Optional[str] = None, limit: int = 10, timeou
     """Scraper une URL et retourner les données extraites"""
     try:
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml,text/csv;q=0.9,*/*;q=0.8'
         }
         response = requests.get(url, timeout=timeout, headers=headers)
         if response.status_code != 200:
             return {
                 "success": False,
-                "error": f"Invalid URL: {response.status_code}",
-                "status_code": 400,
+                "error": f"Upstream responded {response.status_code}",
+                "status_code": response.status_code,
                 "data": []
             }
 
@@ -72,9 +73,13 @@ def scrape_url(url: str, selector: Optional[str] = None, limit: int = 10, timeou
                 elements = soup.find_all(["p", "div", "span"])[:limit]
             data = [{"index": i+1, "value": el.get_text(strip=True)} for i, el in enumerate(elements)]
 
-        # TXT / CSV
-        elif "text" in content_type:
-            lines = response.text.splitlines()[:limit]
+        # TXT / CSV (incl. some CSV served as octet-stream)
+        elif "text" in content_type or "csv" in content_type or "octet-stream" in content_type:
+            # data.gouv peut renvoyer du CSV en octet-stream, on tente un décodage texte
+            text_body = response.text
+            if not text_body and response.content:
+                text_body = response.content.decode("utf-8", errors="ignore")
+            lines = text_body.splitlines()[:limit]
             data = [{"index": i+1, "value": line} for i, line in enumerate(lines)]
 
         # PDF

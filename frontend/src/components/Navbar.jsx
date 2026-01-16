@@ -8,6 +8,7 @@ export default function Navbar({ activeTab, setActiveTab }) {
     { id: 'scrape', label: 'Scrape' },
     { id: 'search', label: 'Recherche' },
     { id: 'scheduler', label: 'Scheduler' },
+    { id: 'analytics', label: 'Analytics' },
   ];
 
   return (

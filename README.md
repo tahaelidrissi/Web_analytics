@@ -1,3 +1,4 @@
+│   └── analytics.py       # Analytics & IA avec LLM
 # Web Analytics Project - Application Crawler Avancée
 
 Une application **FastAPI** complète pour la collecte, le traitement et l'analyse de données web avec support avancé pour le scraping, les flux RSS et les réseaux sociaux.
@@ -25,6 +26,7 @@ Cette application est un **système complet de web scraping** avec les capacité
 | **Phase 3a** | Support des flux RSS | ✅ Complet |
 | **Phase 3b** | Intégration réseaux sociaux | ✅ Complet |
 | **Phase 4** | Containerisation Docker | ✅ Complet |
+| **Phase 5** | Analytics & IA avec LLM | ✅ Complet |
 
 ---
 
@@ -96,6 +98,30 @@ Cette application est un **système complet de web scraping** avec les capacité
 - Tests de connexion à chaque source
 - Stockage du contenu avec métadonnées complètes
 
+### 🔷 Phase 5: Analytics & Intelligence Artificielle
+
+**Analyse par LLM (OpenAI GPT)**
+- Analyse automatique des documents scrapés
+- Résumé intelligent de contenu
+- Détection de sentiment (positif, négatif, neutre)
+- Classification automatique par catégories
+- Extraction de mots-clés pertinents
+- Reconnaissance d'entités nommées (personnes, lieux, organisations)
+
+**Visualisations & Dashboards**
+- Distribution des sentiments (graphiques en barres)
+- Répartition par catégories
+- Top 20 mots-clés avec taille proportionnelle
+- Recherche sémantique par mots-clés extraits
+- Filtrage par catégorie
+
+**Endpoints Analytics**
+- POST /analytics/analyze-document: Analyser un document spécifique
+- POST /analytics/analyze-batch: Analyser plusieurs documents en batch
+- GET /analytics/stats: Statistiques globales d'analyse
+- GET /analytics/documents-by-category/{category}: Documents par catégorie
+- GET /analytics/search-by-keywords: Recherche sémantique
+
 ---
 
 ## 🏗️ Architecture
@@ -138,6 +164,7 @@ webanalproject/
 | RSS | feedparser | - |
 | Scheduling | APScheduler | 3.11.2 |
 | Validation | Pydantic | 2.12.5 |
+| LLM | OpenAI GPT | 2.15.0 |
 | Tests | pytest | 9.0.2 |
 | Python | 3.13.9 | - |
 
@@ -180,6 +207,7 @@ cp .env.example .env
 # Éditer .env avec vos paramètres
 # - MONGO_URI: mongodb://user:pass@host:port/db
 # - MONGODB_DB: nom de la base de données
+# - OPENAI_API_KEY: clé API OpenAI pour l'analyse IA
 # - API_HOST: localhost
 # - API_PORT: 8000
 ```
@@ -211,6 +239,9 @@ MAX_RETRIES=3
 
 # Scheduler
 SCHEDULER_INTERVAL=3600  # 1 heure par défaut
+
+# OpenAI (pour Analytics & IA)
+OPENAI_API_KEY=sk-...  # Votre clé API OpenAI
 ```
 
 ### Configuration du Crawler (via API)
