@@ -15,6 +15,7 @@ class SourceCreate(BaseModel):
     source_type: str  # website, blog, rss, twitter, facebook, linkedin
     frequency: int = 24  # heures entre les scrapes
     selector: Optional[str] = None  # CSS selector pour HTML/XML
+    limit: int = 10  # Nombre maximum d'éléments à scraper
     active: bool = True
     description: Optional[str] = None
 
@@ -24,6 +25,7 @@ class SourceUpdate(BaseModel):
     url: Optional[str] = None
     frequency: Optional[int] = None
     selector: Optional[str] = None
+    limit: Optional[int] = None
     active: Optional[bool] = None
     description: Optional[str] = None
 

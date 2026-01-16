@@ -5,7 +5,7 @@ import requests
 from bs4 import BeautifulSoup
 import io
 from pypdf import PdfReader
-from db import collection, sources_collection, db
+from db import collection as scraped_collection, sources_collection, db
 from datetime import datetime, UTC
 from bson import ObjectId
 
@@ -48,9 +48,17 @@ def get_config():
 def scrape_url(url: str, selector: Optional[str] = None, limit: int = 10, timeout: int = 15) -> dict:
     """Scraper une URL et retourner les données extraites"""
     try:
-        response = requests.get(url, timeout=timeout)
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        response = requests.get(url, timeout=timeout, headers=headers)
         if response.status_code != 200:
-            raise HTTPException(status_code=400, detail=f"Invalid URL: {response.status_code}")
+            return {
+                "success": False,
+                "error": f"Invalid URL: {response.status_code}",
+                "status_code": 400,
+                "data": []
+            }
 
         content_type = response.headers.get("Content-Type", "").lower()
         data = []
@@ -82,7 +90,12 @@ def scrape_url(url: str, selector: Optional[str] = None, limit: int = 10, timeou
             data = [{"index": i+1, "value": line} for i, line in enumerate(lines)]
 
         else:
-            raise HTTPException(status_code=415, detail=f"Unsupported content type: {content_type}")
+            return {
+                "success": False,
+                "error": f"Unsupported content type: {content_type}",
+                "status_code": 415,
+                "data": []
+            }
 
         return {
             "success": True,
@@ -90,10 +103,25 @@ def scrape_url(url: str, selector: Optional[str] = None, limit: int = 10, timeou
             "content_type": content_type,
             "count": len(data)
         }
+    except requests.exceptions.Timeout:
+        return {
+            "success": False,
+            "error": "Request timeout",
+            "status_code": 408,
+            "data": []
+        }
+    except requests.exceptions.RequestException as e:
+        return {
+            "success": False,
+            "error": f"Request error: {str(e)}",
+            "status_code": 400,
+            "data": []
+        }
     except Exception as e:
         return {
             "success": False,
             "error": str(e),
+            "status_code": 500,
             "data": []
         }
 
@@ -112,7 +140,8 @@ def scrape_manual(request: ScrapeRequest):
         )
 
         if not result["success"]:
-            raise HTTPException(status_code=500, detail=result.get("error"))
+            status_code = result.get("status_code", 500)
+            raise HTTPException(status_code=status_code, detail=result.get("error"))
 
         # Stockage dans MongoDB
         document = {
@@ -125,7 +154,7 @@ def scrape_manual(request: ScrapeRequest):
             "source_id": None,
             "scraped_at": datetime.now(UTC)
         }
-        inserted_doc = collection.insert_one(document)
+        inserted_doc = scraped_collection.insert_one(document)
         document["_id"] = str(inserted_doc.inserted_id)
 
         return document

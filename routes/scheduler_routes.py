@@ -14,7 +14,7 @@ router = APIRouter(prefix="/scheduler", tags=["scheduler"])
 class ScheduleRequest(BaseModel):
     """Modèle pour programmer une source"""
     source_id: str
-    frequency_hours: int = 24
+    frequency_hours: float = 24
     
     model_config = ConfigDict(from_attributes=True)
 

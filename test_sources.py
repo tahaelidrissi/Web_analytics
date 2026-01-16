@@ -134,15 +134,28 @@ def test_toggle_source(mock_update_one, mock_find_one):
 
 # ==================== Test Scrape existant ====================
 
+@patch('routes.scrape.get_config')
+@patch('routes.scrape.requests.get')
 @patch('routes.scrape.collection.insert_one')
-def test_scrape_html(mock_insert):
+def test_scrape_html(mock_insert, mock_get, mock_config):
     """Test de scraping HTML"""
+    mock_config.return_value = {
+        "global_frequency": 24,
+        "max_hits_per_source": 100,
+        "timeout": 15,
+        "retry_count": 3
+    }
     mock_insert.return_value = MagicMock(inserted_id=ObjectId())
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.headers = {"Content-Type": "text/html; charset=utf-8"}
+    mock_response.text = "<html><body><p>Test content</p><p>Another paragraph</p></body></html>"
+    mock_get.return_value = mock_response
     
     response = client.post("/scrape", json={
         "url": "https://example.com",
         "selector": "p",
         "limit": 5
     })
-    assert response.status_code in [200, 400, 415]
+    assert response.status_code == 200
     print("✅ test_scrape_html PASSED")

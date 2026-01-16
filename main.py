@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from routes.scrape import router as scrape_router
 from routes.sources import router as sources_router
@@ -31,6 +32,21 @@ app = FastAPI(
     title="Web Crawler API",
     version="1.0.0",
     lifespan=lifespan
+)
+
+# CORS (autoriser le frontend local)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "http://localhost:5175",
+        "http://localhost:5176",
+        "http://localhost:5177",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Inclure les routes

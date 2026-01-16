@@ -48,6 +48,19 @@ def build_search_regex(keywords: List[str], case_sensitive: bool = False):
     pattern = '|'.join(re.escape(kw) for kw in keywords)
     return re.compile(pattern, flags)
 
+@router.get("/", response_model=SearchResponse)
+def search_simple(keyword: str, limit: int = 50, skip: int = 0, source_id: Optional[str] = None):
+    """Recherche simple par mot-clé (endpoint GET)"""
+    query = SearchQuery(
+        keywords=[keyword],
+        case_sensitive=False,
+        exact_match=False,
+        limit=limit,
+        skip=skip,
+        source_id=source_id
+    )
+    return search_documents(query)
+
 @router.post("/", response_model=SearchResponse)
 def search_documents(query: SearchQuery):
     """Rechercher dans les documents scrappés par keywords"""
